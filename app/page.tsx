@@ -14,6 +14,7 @@ import { ChangeEvent, DragEvent, useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -84,31 +85,40 @@ export default function Home() {
     // }
 
     {
+      setUploading(true);
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/parse", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        toast.error("Parsing failed.", {
-          description: errorData.error || "Unknown error occurred.",
+      try {
+        const response = await fetch("/api/parse", {
+          method: "POST",
+          body: formData,
         });
-        setUploading(false);
-        return;
-      }
 
-      const data = await response.json();
-      console.log({ data });
-      const params = new URLSearchParams();
-      if (data.name) params.set("name", data.name);
-      if (data.email) params.set("email", data.email);
-      router.push(`/greeting?${params.toString()}`);
+        if (!response.ok) {
+          const errorData = await response.json();
+          toast.error("Parsing failed.", {
+            description: errorData.error || "Unknown error occurred.",
+          });
+          setUploading(false);
+          return;
+        }
+
+        const data = await response.json();
+        console.log({ data });
+        const params = new URLSearchParams();
+        if (data.name) params.set("name", data.name);
+        if (data.email) params.set("email", data.email);
+        router.push(`/greeting?${params.toString()}`);
+      } catch (error) {
+        console.error("Upload error:", error);
+        toast.error("An error occurred during upload.");
+        setUploading(false);
+      }
     }
-  };
+
+
+  }
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
@@ -151,22 +161,31 @@ export default function Home() {
           </label>
         </CardContent>
 
-        <CardFooter className="flex items-center justify-end gap-3">
-          <Button
-            type="reset"
-            variant="ghost"
-            onClick={() => {
-              setDragActive(false);
-              setFile(null);
-            }}
-          >
-            Clear
-          </Button>
-          <Button type="submit" disabled={uploading}>
-            {uploading ? "Uploading..." : "Continue"}
-          </Button>
-        </CardFooter>
+        {file && (
+          <CardFooter className="flex items-center justify-end gap-3">
+            <Button
+              type="reset"
+              variant="ghost"
+              onClick={() => {
+                setDragActive(false);
+                setFile(null);
+              }}
+            >
+              Clear
+            </Button>
+            <Button type="submit" disabled={uploading}>
+              {uploading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                "Continue"
+              )}
+            </Button>
+          </CardFooter>
+        )}
       </Card>
     </form>
-  );
-}
+  )
+};

@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
         {
           role: "system",
           content:
-            "You are a helpful assistant that extracts information from resumes/CVs. Your task is to extract the candidate's first name, last name, and email address. Return the result strictly as a valid JSON object with the keys 'firstName', 'lastName', and 'email'. If a field is missing, set it to null. Do not include markdown formatting or code blocks in the response, just the raw JSON.",
+            "You are a helpful assistant that extracts information from resumes/CVs. Your task is to verify if the document is a resume/CV, and if so, extract the candidate's first name, last name, and email address. Return the result strictly as a valid JSON object with the keys 'isResume' (boolean), 'validityReason' (string, explanation if not a resume, otherwise null), 'firstName', 'lastName', and 'email'. If a field is missing, set it to null. Do not include markdown formatting or code blocks in the response, just the raw JSON.",
         },
         {
           role: "user",
@@ -91,6 +91,13 @@ export async function POST(request: NextRequest) {
     } catch (e) {
       console.error("Failed to parse LLM response as JSON", content);
       throw new Error("Invalid JSON response from LLM");
+    }
+
+    if (parsedResult.isResume === false) {
+      return NextResponse.json(
+        { error: parsedResult.validityReason || "The uploaded file does not appear to be a resume/CV." },
+        { status: 400 }
+      );
     }
 
     // Map to the format expected by the frontend
