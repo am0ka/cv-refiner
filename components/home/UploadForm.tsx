@@ -76,10 +76,11 @@ export default function UploadForm() {
 
             const data = await response.json();
             console.log({ data });
-            const params = new URLSearchParams();
-            if (data.name) params.set("name", data.name);
-            if (data.email) params.set("email", data.email);
-            router.push(`/greeting?${params.toString()}`);
+
+            // Store parsed data in localStorage to access it on the greeting page
+            localStorage.setItem("cvData", JSON.stringify(data));
+
+            router.push("/greeting");
         } catch (error) {
             console.error("Upload error:", error);
             toast.error("An error occurred during upload.");

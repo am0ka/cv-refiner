@@ -29,14 +29,46 @@ export async function POST(request: NextRequest) {
         {
           role: "system",
           content:
-            "You are a helpful assistant that extracts information from resumes/CVs. Your task is to verify if the document is a resume/CV, and if so, extract the candidate's first name, last name, and email address. Return the result strictly as a valid JSON object with the keys 'isResume' (boolean), 'validityReason' (string, explanation if not a resume, otherwise null), 'firstName', 'lastName', and 'email'. If a field is missing, set it to null. Do not include markdown formatting or code blocks in the response, just the raw JSON.",
+            "You are a helpful assistant that extracts information from resumes/CVs. Your task is to verify if the document is a resume/CV, and if so, extract the candidate's full profile. Return the result strictly as a valid JSON object with the following structure:\n" +
+            "{\n" +
+            "  \"isResume\": boolean,\n" +
+            "  \"validityReason\": string | null,\n" +
+            "  \"firstName\": string | null,\n" +
+            "  \"lastName\": string | null,\n" +
+            "  \"email\": string | null,\n" +
+            "  \"phone\": string | null,\n" +
+            "  \"linkedin\": string | null,\n" +
+            "  \"summary\": string | null,\n" +
+            "  \"experiences\": [\n" +
+            "    {\n" +
+            "      \"company\": string,\n" +
+            "      \"role\": string,\n" +
+            "      \"startDate\": string,\n" +
+            "      \"endDate\": string,\n" +
+            "      \"description\": string[] (array of bullet points),\n" +
+            "      \"summary\": string | null\n" +
+            "    }\n" +
+            "  ],\n" +
+            "  \"education\": [\n" +
+            "    {\n" +
+            "      \"institution\": string,\n" +
+            "      \"degree\": string,\n" +
+            "      \"startDate\": string,\n" +
+            "      \"endDate\": string\n" +
+            "    }\n" +
+            "  ],\n" +
+
+            "  \"skills\": string[],\n" +
+            "  \"languages\": string[]\n" +
+            "}\n" +
+            "Do not include markdown formatting or code blocks in the response, just the raw JSON.",
         },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Extract the candidate's first name, last name, and email address from this resume."
+              text: "Extract the full candidate profile from this resume."
             },
             {
               type: "file",
@@ -88,7 +120,7 @@ export async function POST(request: NextRequest) {
     let parsedResult;
     try {
       parsedResult = JSON.parse(cleanedContent);
-    } catch (e) {
+    } catch {
       console.error("Failed to parse LLM response as JSON", content);
       throw new Error("Invalid JSON response from LLM");
     }
@@ -100,18 +132,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Map to the format expected by the frontend
-    const name = parsedResult.firstName && parsedResult.lastName
-      ? `${parsedResult.firstName} ${parsedResult.lastName}`
-      : (parsedResult.firstName || parsedResult.lastName || null);
-
-    // Handle cases where the model might return full name in one field or slightly different structure if it hallucinates,
-    // but the system prompt is strict.
-
-    return NextResponse.json({
-      name: name,
-      email: parsedResult.email
-    });
+    return NextResponse.json(parsedResult);
 
   } catch (error) {
     console.error("PDF Parse Error:", error);
