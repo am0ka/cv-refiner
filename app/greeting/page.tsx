@@ -9,49 +9,35 @@ import {
     CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CVData } from "@/lib/types";
 import { ArrowLeft, Loader2, Mail, Linkedin, Phone } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { FC } from "react";
+import { useGetLocalCVData } from "@/lib/hooks/getLocalCVData";
+
+const NotFound: FC = () => (
+    <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-gray-50 p-4">
+        <h2 className="text-xl font-semibold text-zinc-900">No CV data found</h2>
+        <p className="text-zinc-500">Please upload your CV first.</p>
+        <Link href="/">
+            <Button>
+                Go Home
+            </Button>
+        </Link>
+    </div>
+);
+
+const Loading: FC = () => (
+    <div className="flex h-screen w-full items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+    </div>
+);
 
 export default function GreetingPage() {
-    const [data, setData] = useState<CVData | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { data, loading } = useGetLocalCVData();
 
-    useEffect(() => {
-        try {
-            const storedData = localStorage.getItem("cvData");
-            if (storedData) {
-                setData(JSON.parse(storedData));
-            }
-        } catch (error) {
-            console.error("Failed to parse CV data", error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
 
-    if (loading) {
-        return (
-            <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-                <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
-            </div>
-        );
-    }
-
-    if (!data) {
-        return (
-            <div className="flex h-screen w-full flex-col items-center justify-center gap-4 bg-gray-50 p-4">
-                <h2 className="text-xl font-semibold text-zinc-900">No CV data found</h2>
-                <p className="text-zinc-500">Please upload your CV first.</p>
-                <Link href="/">
-                    <Button>
-                        Go Home
-                    </Button>
-                </Link>
-            </div>
-        );
-    }
+    if (loading) return <Loading />;
+    if (!data) return <NotFound />;
 
     const { firstName, lastName, email, phone, linkedin, summary, experiences, education, skills, languages } = data;
     const displayName = [firstName, lastName].filter(Boolean).join(" ") || "Candidate";
