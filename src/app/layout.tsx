@@ -29,7 +29,7 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${geistSans.variable} ${geistMono.variable} min-h-screen bg-linear-to-br from-zinc-50 to-zinc-200 text-zinc-900 antialiased`}
       >
-        <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center px-6 py-16">
+        <main className="min-h-screen">
           {children}
         </main>
         <Toaster richColors expand position="top-right" />

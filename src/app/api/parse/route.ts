@@ -46,6 +46,34 @@ export async function POST(request: NextRequest) {
       throw new Error("Invalid JSON response from LLM");
     }
 
+    // Upload to Supabase Storage
+    let filePath = null;
+    try {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+
+      if (supabaseUrl && supabaseKey) {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        const fileName = `uploads/${crypto.randomUUID()}.pdf`;
+        const { error: uploadError } = await supabase.storage
+          .from('cvs')
+          .upload(fileName, buffer, {
+            contentType: 'application/pdf',
+            upsert: false
+          });
+
+        if (uploadError) {
+          console.error("Supabase Storage Upload Error:", uploadError);
+        } else {
+          filePath = fileName;
+        }
+      }
+    } catch (uploadErr) {
+      console.error("Failed to upload to Supabase:", uploadErr);
+    }
+
     if (parsedResult.isResume === false) {
       return NextResponse.json(
         { error: parsedResult.validityReason || "The uploaded file does not appear to be a resume/CV." },
@@ -53,7 +81,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    return NextResponse.json(parsedResult);
+    return NextResponse.json({ ...parsedResult, filePath });
 
   } catch (error) {
     console.error("PDF Parse Error:", error);
