@@ -25,4 +25,5 @@ export interface CVData {
     education: CVEducation[];
     skills: string[];
     languages: string[];
+    filePath?: string;
 }
