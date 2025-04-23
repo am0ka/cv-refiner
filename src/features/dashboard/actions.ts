@@ -29,7 +29,7 @@ export async function addJobSubmission(data: {
     }
 
     const { error } = await supabase.from('submissions').insert({
-        user_id: userData.id,
+        user: userData.id,
         company_name: data.companyName,
         job_title: data.jobTitle,
         link: data.link,

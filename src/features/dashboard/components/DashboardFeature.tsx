@@ -17,7 +17,7 @@ export default async function DashboardFeature() {
             const { data: subs } = await supabase
                 .from('submissions')
                 .select('*')
-                .eq('user_id', userData.id)
+                .eq('user', userData.id)
                 .order('created_at', { ascending: false });
             submissions = subs || [];
         }

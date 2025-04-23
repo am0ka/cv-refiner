@@ -56,9 +56,9 @@ export async function POST(request: NextRequest) {
         const { createClient } = await import("@supabase/supabase-js");
         const supabase = createClient(supabaseUrl, supabaseKey);
 
-        const fileName = `uploads/${crypto.randomUUID()}.pdf`;
+        const fileName = `original/${crypto.randomUUID()}.pdf`;
         const { error: uploadError } = await supabase.storage
-          .from('cvs')
+          .from('cv')
           .upload(fileName, buffer, {
             contentType: 'application/pdf',
             upsert: false
