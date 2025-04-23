@@ -70,7 +70,7 @@ export async function createUserWithPassword(payload: { email: string, password?
     const supabase = await createClient();
     const supabaseAdmin = createAdminClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
     );
 
     const password = payload.password || "TemporaryPass123!@#"; // Fallback if hidden
